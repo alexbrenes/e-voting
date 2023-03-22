@@ -15,7 +15,7 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-import logging
+import logging, json
 
 from telegram import __version__ as TG_VER
 
@@ -62,9 +62,15 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main() -> None:
+    f = open('botConf.json')
+    botConfData = json.load(f)
+
+    print("Running bot: ", botConfData["bot_name"])
+
     """Start the bot."""
+    TOKEN=botConfData["bot_token"]
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token("6291438683:AAFv1xk5jmyM4sdrCZlaijS0a4L8gJFc3mM").build()
+    application = Application.builder().token(TOKEN).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))

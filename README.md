@@ -1,9 +1,10 @@
 # Crear el bot
+## Pasos
 1. Enviar mensaje a `@BotFather` con el comando `/newbot`.
 2. Nombrar el bot
 3. Guardar el token de manera segura.
 
-# Probar el API
+## Probar el API
 ```
 curl -v https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getMe 
 ```
@@ -24,6 +25,10 @@ Expected output
 {"ok":true,"result":{"id":6291438683,"is_bot":true,"first_name":"PetGrupoTAA","username":"PetGrupoTAA_bot","can_join_groups":true,"can_read_all_group_messages":false,"supports_inline_queries":false}}%
 ```
 
+# Ejecución
+1. Copiar `botConf.json_example` a `botConf.json`
+2. Sustituir el token en el archivo de configuración.
+3. `python3 <nombre_bot.py>`
 
 # Referencias
 Lista de frameworks en python: https://core.telegram.org/bots/samples#python
