@@ -1,9 +1,10 @@
 # Crear el bot
+## Pasos
 1. Enviar mensaje a `@BotFather` con el comando `/newbot`.
 2. Nombrar el bot
 3. Guardar el token de manera segura.
 
-# Probar el API
+## Probar el API
 ```
 curl -v https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getMe 
 ```
