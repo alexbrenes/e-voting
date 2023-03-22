@@ -26,9 +26,10 @@ Expected output
 ```
 
 # Ejecución
+1. Instalar dependencias `pip install -r requirements.txt`
 1. Copiar `botConf.json_example` a `botConf.json`
-2. Sustituir el token en el archivo de configuración.
-3. `python3 <nombre_bot.py>`
+1. Sustituir el token en el archivo de configuración.
+1. `python3 <nombre_bot.py>`
 
 # Referencias
 Lista de frameworks en python: https://core.telegram.org/bots/samples#python
