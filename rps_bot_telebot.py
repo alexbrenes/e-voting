@@ -31,6 +31,7 @@ def joinTournament(message):
     players[user.id]['gamemode'] = 'rpsls'
     players[user.id]['signal'] = ''
     players[user.id]['adversary'] = ''
+    players[user.id]['isWinner'] = False
     bot.send_message(user.id, f"You have successfully joined to the tournament!\nThere are {n - 1} other players in the tournament.")
 
 @bot.message_handler(commands=['join'])
@@ -80,13 +81,14 @@ def pairing(players_dict):
         players[b]['adversary'] = a
     return pairs
 
-@bot.message_handler(commands=['playMatch'])
-def playMatch(message):#match):
-    a,b = (1,2)#match
-    bot.send_message("907018271", f"What is your signal against {b}?")
-    bot.send_message("907018271",f"/{game_mode_tk[gmode_selected]['A']}\n/{game_mode_tk[gmode_selected]['B']}\n/{game_mode_tk[gmode_selected]['C']}\n/{game_mode_tk[gmode_selected]['D']}\n/{game_mode_tk[gmode_selected]['E']}\n")
-    # bot.send_message(b, f"What is your signal against {a}?")
-    # bot.send_message(b,f"/{game_mode_tk[gmode_selected]['A']}\n/{game_mode_tk[gmode_selected]['B']}\n/{game_mode_tk[gmode_selected]['C']}\n/{game_mode_tk[gmode_selected]['D']}\n/{game_mode_tk[gmode_selected]['E']}\n")
+def playMatch(match):
+    a,b = match
+    # bot.send_message("907018271", f"What is your signal against {b}?")
+    # bot.send_message("907018271",f"/{game_mode_tk[gmode_selected]['A']}\n/{game_mode_tk[gmode_selected]['B']}\n/{game_mode_tk[gmode_selected]['C']}\n/{game_mode_tk[gmode_selected]['D']}\n/{game_mode_tk[gmode_selected]['E']}\n")
+    bot.send_message(b, f"What is your signal against {a}?")
+    bot.send_message(b,f"/A {game_mode_tk[gmode_selected]['A']}\n/B {game_mode_tk[gmode_selected]['B']}\n/C {game_mode_tk[gmode_selected]['C']}\n/D {game_mode_tk[gmode_selected]['D']}\n/E {game_mode_tk[gmode_selected]['E']}\n")
+    bot.send_message(a, f"What is your signal against {b}?")
+    bot.send_message(a,f"/A {game_mode_tk[gmode_selected]['A']}\n/B {game_mode_tk[gmode_selected]['B']}\n/C {game_mode_tk[gmode_selected]['C']}\n/D {game_mode_tk[gmode_selected]['D']}\n/E {game_mode_tk[gmode_selected]['E']}\n")
 
 def game(choice_a:str, choice_b:str):
     options = ["A", "B", "C", "D", "E"]
@@ -113,25 +115,32 @@ def game(choice_a:str, choice_b:str):
 def playSignal(message):
     players[message.chat.id]['signal'] = message.text[1]
     adversary = players[message.chat.id]['adversary']
-    if adversary['signal'] != '':
-        result = game(players[message.chat.id]['signal'], adversary['signal'])
+    print(adversary)
+    if players[adversary]['signal'] != '':
+        result = game(players[message.chat.id]['signal'], players[adversary]['signal'])
         players[message.chat.id]['signal'] = ''
-        adversary['signal'] = ''
+        players[adversary]['signal'] = ''
         if result == 0:
-            bot.send_message(message.chat.id,"There is a tie.\Please select again a new signal.")
-            bot.send_message(players[message.chat.id]['adversary'],"There is a tie.\Please select again a new signal.")
-            playMatch(message.chat.id, players[message.chat.id]['adversary'])
+            bot.send_message(message.chat.id,"There is a tie.\nPlease select again a new signal.")
+            bot.send_message(adversary,"There is a tie.\nPlease select again a new signal.")
+            playMatch(message.chat.id, adversary)
         elif result == 1:
-            bot.send_message(message.chat.id, f"You have won againts {players[message.chat.id]['adversary']}")
-            bot.send_message(players[message.chat.id]['adversary'], f"You have lost againts {message.chat.id}")
+            players[message.chat.id]["isWinner"] = True
+            players[adversary]["isWinner"] = False
+            bot.send_message(message.chat.id, f"You have won againts {adversary}")
+            bot.send_message(adversary, f"You have lost againts {message.chat.id}")
         else:
-            bot.send_message(players[message.chat.id]['adversary'], f"You have won againts {message.chat.id}")
-            bot.send_message(message.chat.id, f"You have lost againts {players[message.chat.id]['adversary']}")
+            players[message.chat.id]["isWinner"] = False
+            players[adversary]["isWinner"] = True
+            bot.send_message(adversary, f"You have won againts {message.chat.id}")
+            bot.send_message(message.chat.id, f"You have lost againts {adversary}")
             
 
 def startTournament():
     g_tournament = pairing(players)
     broadcast(f"The tournament matches is as follows\n{g_tournament}")
+    for p in g_tournament:
+        playMatch(p)
 
 
 
