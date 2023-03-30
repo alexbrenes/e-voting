@@ -7,10 +7,11 @@ bot_token = '6170097626:AAF0dCDmWInLrR0zAZ85qMaY_6VQdrVX7mQ'
 bot=telebot.TeleBot(bot_token)
 players = {}#{'a':1,'b':2,'c':3}
 n = 0
-y_votes = 0
+gamemode_votes = [0,0,0]
 next_power = 2
 g_tournament = []
-gmode_selected = 'rpsls'
+stage_matches_finished = 0
+gmode_selected = 'rpsfwl'
 game_mode_tk = {'rpsls':{'A':'Rock', 'B':'Paper', 'C':'Scissors', 'D':'Lizard', 'E':'Spock'},
             'rpsfwt':{'A':'Rock', 'B':'Paper', 'C':'Scissors', 'D':'Fire', 'E':'Water'},
             'rpsfwl':{'A':'Rock', 'B':'Paper', 'C':'Scissors', 'D':'Fire', 'E':'Well'}}
@@ -39,25 +40,37 @@ def handleNewUser(message):
     joinTournament(message)
     if isPowerOfTwo(n) and n > 1:
         broadcast("The tournament can start now.")
-        broadcast("You can vote to start the tournament:\n/yes\n/no")
+        broadcast("Select the game mode:\n/rpsls to play Rock, Paper, Scissors, Lizard, Spock\n/rpsfwt to play Rock, Paper, Scissors, Fire, Water\n/rpsfwl to play Rock, Paper, Scissors, Fire, Well")
     else:
         broadcast(f"There are/is {next_power - n} player(s) left to start the tournament.")
 
 
 
-@bot.message_handler(commands=['yes'])
-def handleYesVote(message):        
-    global y_votes
-    print(players)
-    if not players[message.chat.id]['vote']:
-        players[message.chat.id]['vote'] = True
-        y_votes += 1
-    if y_votes == n:
+@bot.message_handler(commands=['rpsls', 'rpsfwt', 'rpsfwl'])
+def handleGameModeVote(message):
+    global gamemode_votes
+    global gmode_selected
+    if players[message.chat.id]['vote'] == '':
+        selected = message.text[1:]
+        players[message.chat.id]['vote'] = selected
+        idx = 2
+        if selected == 'rpsls':
+            idx = 0
+        elif selected == 'rpsfwt':
+            idx = 1
+        gamemode_votes[idx] += 1
+    if sum(gamemode_votes) == n:
+        selected_idx = gamemode_votes.index(max(gamemode_votes))
+        gmode_selected = 'rpsfwl'
+        if selected_idx == 0:
+            gmode_selected = 'rpsls'
+        elif selected_idx == 1:
+            gmode_selected = 'rpsfwl'
         broadcast("Everyone is ready to start the tournament.\nStarting...")
         startTournament()
 
 
-def isPowerOfTwo(x) -> bool:
+def isPowerOfTwo(x):
     c = 0
     while x:
         if x&1:
@@ -83,8 +96,6 @@ def pairing(players_dict):
 
 def playMatch(match):
     a,b = match
-    # bot.send_message("907018271", f"What is your signal against {b}?")
-    # bot.send_message("907018271",f"/{game_mode_tk[gmode_selected]['A']}\n/{game_mode_tk[gmode_selected]['B']}\n/{game_mode_tk[gmode_selected]['C']}\n/{game_mode_tk[gmode_selected]['D']}\n/{game_mode_tk[gmode_selected]['E']}\n")
     bot.send_message(b, f"What is your signal against {a}?")
     bot.send_message(b,f"/A {game_mode_tk[gmode_selected]['A']}\n/B {game_mode_tk[gmode_selected]['B']}\n/C {game_mode_tk[gmode_selected]['C']}\n/D {game_mode_tk[gmode_selected]['D']}\n/E {game_mode_tk[gmode_selected]['E']}\n")
     bot.send_message(a, f"What is your signal against {b}?")
@@ -115,7 +126,7 @@ def game(choice_a:str, choice_b:str):
 def playSignal(message):
     players[message.chat.id]['signal'] = message.text[1]
     adversary = players[message.chat.id]['adversary']
-    print(adversary)
+    global stage_matches_finished
     if players[adversary]['signal'] != '':
         result = game(players[message.chat.id]['signal'], players[adversary]['signal'])
         players[message.chat.id]['signal'] = ''
@@ -129,19 +140,48 @@ def playSignal(message):
             players[adversary]["isWinner"] = False
             bot.send_message(message.chat.id, f"You have won againts {adversary}")
             bot.send_message(adversary, f"You have lost againts {message.chat.id}")
+            bot.send_message(adversary, f"Thanks for playing. Better luck the next one!")
+            stage_matches_finished += 1
         else:
             players[message.chat.id]["isWinner"] = False
             players[adversary]["isWinner"] = True
             bot.send_message(adversary, f"You have won againts {message.chat.id}")
             bot.send_message(message.chat.id, f"You have lost againts {adversary}")
-            
+            bot.send_message(message.chat.id, f"Thanks for playing. Better luck the next one!")
+            stage_matches_finished += 1
+    if stage_matches_finished == len():
+        nextStage()
+
 
 def startTournament():
+    global g_tournament
     g_tournament = pairing(players)
     broadcast(f"The tournament matches is as follows\n{g_tournament}")
     for p in g_tournament:
         playMatch(p)
 
+def nextStage():
+    global g_tournament
+    # Check the winners and remove the losers from `players`
+    players = {k:p for k,p in players if p['isWinner']}
+
+    # Check if there is already a winner
+    if len(players) == 1:
+        key = 0
+        winner = 0
+        for k,p in players:
+            key = k
+            winner = p
+        broadcast(f"There is a winner! {key}")
+        return
+    
+    # Announce the next round
+    broadcast("The next round is about to start")
+    g_tournament = pairing(players)
+    broadcast(f"The tournament matches is as follows\n{g_tournament}")
+    for p in g_tournament:
+        playMatch(p)
+    
 
 
 bot.polling()
