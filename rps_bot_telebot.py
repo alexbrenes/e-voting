@@ -1,6 +1,5 @@
 import telebot
 import random
-import math
 
 bot_name = 'RPSLSpock'
 bot_token = '6170097626:AAF0dCDmWInLrR0zAZ85qMaY_6VQdrVX7mQ'
