@@ -86,7 +86,6 @@ def handleCommitment(message):
     else:
         bot.send_message(message.chat.id, f"You have already published your commitment, you must wait until all participants submit their commitments to start the verification stage.")
 
-
 def verifyRequest(message):
     request = message.text.split()
     return len(request) >= 3 and request[0].lower() == "verify" and request[2].isnumeric()
@@ -100,10 +99,11 @@ def verify_vote(player_id, vote, r):
 
 @bot.message_handler(func=verifyRequest)
 def tallyVotes(message):
+    global gamemode_votes
     global gmode_selected
     global players
 
-    if players[message.chat.id]['vote'] != None:
+    if players[message.chat.id]['vote'] == None:
         request = message.text.split()
         selected_vote = request[1]
         idx = voteIndex(selected_vote)
@@ -127,7 +127,8 @@ def tallyVotes(message):
             gmode_selected = list(game_mode_tk.keys())[selected_idx]
             broadcast("Everyone is ready to start the tournament.\nStarting...")
             startTournament()
-
+    else:
+        bot.send_message(message.chat.id, f"You commitment has been already verified!")
 
 def isPowerOfTwo(x):
     c = 0
