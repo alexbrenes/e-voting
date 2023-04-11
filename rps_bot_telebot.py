@@ -107,7 +107,7 @@ def verifyRequest(message):
 def verifySignalRequest(message):
     request = message.text.split()
     if len(request) < 3:
-        return
+        return False
     return len(request) == 3 and request[0].lower() == "verifysignal" and len(request[1]) == 1 and request[2].isnumeric() and ord('A') <= ord(request[1]) <= ord('E')
 
 
@@ -150,7 +150,7 @@ def tallyVotes(message):
         if totalVotesCast == n:
             selected_idx = gamemode_votes.index(max(gamemode_votes))
             gmode_selected = list(game_mode_tk.keys())[selected_idx]
-            broadcast("Everyone is ready to start the tournament.\nStarting...")
+            broadcast(f"Everyone is ready to start the tournament. The selected gamemode is {', '.join(list(game_mode_tk[gmode_selected].values()))}\nStarting...")
             startTournament()
     else:
         bot.send_message(
@@ -172,6 +172,7 @@ def verifySignal(message):
         if is_valid:
             bot.send_message(
                 message.chat.id, f"Your signal has been verified succefully!")
+            bot.send_message(players[message.chat.id]['adversary'], "Your adversary has already committed hers signal.")
             adversary = players[message.chat.id]['adversary']
             players[message.chat.id]['signal'] = request[1]
             if players[adversary]['signal'] != '':
@@ -280,11 +281,10 @@ def game(choice_a: str, choice_b: str):
 def playSignal(message):
     global stage_matches_finished
     if players[message.chat.id]['signalCommitment'] == None:
-        # players[message.chat.id]['signal'] = message.text[1]
-        # adversary = players[message.chat.id]['adversary']
         c, r = p.commit(public_params, ord(message.text[1]))
         players[message.chat.id]['signalCommitment'] = c
         selected = message.text[1]
+        bot.send_message(players[message.chat.id]['adversary'], "Your adversary has already sent hers signal.")
         bot.send_message(message.chat.id, f"The commitment for the signal <code>{selected}</code> has been submitted.\n. Please make sure you remember the selected signal and the random value to verify your signal in the next state.\n\nsignal: <code>{selected}</code>\nrandom value: <code>{r}</code>\ncommitment: <code>{c}</code>.\n\n Once your rival has submitted hers singal, you must verify your signal by sending the following message:\n<code>verifySignal {selected} {r}</code>", parse_mode='html')
 
 
